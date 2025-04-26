@@ -1,0 +1,78 @@
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="loader.css">
+<div class="header">
+  <h2>Slider</h2>
+</div>
+<div class="form">
+<input type="file" id="imgInput" accept="image/*">
+<img id="preview" src="" width="100">
+<input type="text" id="url" placeholder="Enter URL" class="int">
+<button onclick="submitSlider()" class="btn">Submit</button>
+<div id="loader"><div class="loader"></div></div>
+</div>
+<table border="1" id="sliderTable"><thead><tr><th>Image</th><th style="display: none;">URL</th><th>Action</th></tr></thead><tbody></tbody></table>
+
+<script>
+const scriptURL = 'https://script.google.com/macros/s/AKfycbxkGSnILfPImd2O4CAGpcwdGrzgiXJxz5Y-A7q87qRKt93P2pWMuzkxCm04ibQOD7c_Qg/exec';
+const imgbbKey = '31ad30f7d6b409876720b01d93d826f8';
+document.getElementById('loader').style.display = 'none';
+
+document.getElementById('imgInput').addEventListener('change', function() {
+  const file = this.files[0];
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    document.getElementById('preview').src = e.target.result;
+  };
+  if (file) reader.readAsDataURL(file);
+});
+
+function submitSlider() {
+  const file = document.getElementById('imgInput').files[0];
+  const url = document.getElementById('url').value;
+  if (!file || !url) return alert("All fields required");
+  document.getElementById('loader').style.display = 'block';
+  const form = new FormData();
+  form.append('image', file);
+  fetch(`https://api.imgbb.com/1/upload?key=${imgbbKey}`, {
+    method: 'POST',
+    body: form
+  }).then(res => res.json()).then(data => {
+    const imgUrl = data.data.url;
+    fetch(scriptURL, {
+      method: 'POST',
+      body: JSON.stringify({ action: 'add_slider', image: imgUrl, url: url })
+    }).then(() => location.reload());
+  });
+}
+
+function loadSlider() {
+  fetch(`${scriptURL}?action=get_slider`)
+    .then(res => res.json())
+    .then(data => {
+      const tbody = document.querySelector('#sliderTable tbody');
+      data.forEach((row, index) => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td><img src="${row[0]}" width="50"></td>
+          <td style="display: none;">${row[1]}</td>
+          <td><button onclick="deleteSlider(${index + 1})">Delete</button></td>
+        `;
+        tbody.appendChild(tr);
+      });
+    });
+}
+
+function deleteSlider(rowIndex) {
+  if (confirm("Are You Want To Delete")) {
+    document.getElementById('loader').style.display = 'block';
+    fetch(scriptURL, {
+      method: 'POST',
+      body: JSON.stringify({ action: 'delete_slider', row: rowIndex + 1 })
+    }).then(() => location.reload());
+  }
+}
+
+loadSlider();
+</script>

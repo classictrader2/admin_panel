@@ -1,0 +1,44 @@
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="loader.css">
+<style>
+    #loader { display: none; }
+</style>
+<div class="header">
+    <h2>Send Notification</h2>
+</div>
+
+<form id="notificationForm" class="form">
+  <input type="text" name="title" placeholder="Enter Title" required class="int" />
+  <textarea name="message" placeholder="Enter Message" required class="int" style="border-radius: 8px; height: 180px; resize: none;"></textarea>
+  <button type="submit" class="btn">Submit</button>
+</form>
+
+<div id="loader"><div class="loader"></div></div>
+
+<script>
+  const form = document.getElementById('notificationForm');
+  const loader = document.getElementById('loader');
+
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+    loader.style.display = 'flex';
+
+    const formData = new FormData(form);
+
+    fetch('https://script.google.com/macros/s/AKfycbxNB44wRfVTmXXyvKVjVxy7IX2sGfd0pbO7ctng1DchqE6aRF56DY-kKxanjkVI6bll_g/exec', {
+      method: 'POST',
+      body: formData
+    })
+    .then(response => response.text())
+    .then(() => {
+      alert("Notification sent successfully!");
+      location.reload();
+    })
+    .catch(() => {
+      alert("Something went wrong.");
+      loader.style.display = 'none';
+    });
+  });
+</script>

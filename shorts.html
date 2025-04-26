@@ -1,0 +1,55 @@
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="loader.css">
+<style>
+    #loader { display: none; }
+</style>
+<div class="header">
+    <h2>Upload YouTube Shorts</h2>
+</div>
+<form id="youtubeForm" class="form">
+  <input type="url" id="youtubeUrl" placeholder="YouTube URL" class="int" required />
+  <button type="submit" class="btn">Submit</button>
+</form>
+
+<div id="loader"><div class="loader"></div></div>
+
+<script>
+    const form = document.getElementById('youtubeForm');
+    const loader = document.getElementById('loader');
+  
+    function extractVideoId(url) {
+      const regex = /(?:youtube\.com\/(?:watch\?v=|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/;
+      const match = url.match(regex);
+      return match ? match[1] : null;
+    }
+  
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      loader.style.display = 'flex';
+      const url = document.getElementById('youtubeUrl').value;
+      const videoId = extractVideoId(url);
+      if (!videoId) {
+        alert("Invalid YouTube URL");
+        loader.style.display = 'none';
+        return;
+      }
+      const formData = new FormData();
+      formData.append("videoId", videoId);
+  
+      fetch("https://script.google.com/macros/s/AKfycbywUOAQw2WT3Qtj6Y6wr_b7JOY1eiqerNg8Xb_7wBxYpsD68AK-MPcHZGMJlrJYh_d7ig/exec", {
+        method: "POST",
+        body: formData
+      })
+      .then(() => {
+        alert("Video ID submitted successfully!");
+        location.reload();
+      })
+      .catch(() => {
+        alert("Submission failed.");
+        loader.style.display = 'none';
+      });
+    });
+  </script>
+  

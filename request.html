@@ -1,0 +1,110 @@
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="loader.css">
+<style>
+  #requests {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
+  }
+  
+  #requests > div {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+    padding: 20px;
+    transition: transform 0.2s ease;
+    margin: 0 20px 0 20px;
+  }
+  
+  #requests > div:hover {
+    transform: translateY(-5px);
+  }
+  
+  p {
+    margin-bottom: 10px;
+    line-height: 1.5;
+  }
+  
+  img {
+    display: block;
+    margin: 15px 0;
+    border-radius: 4px;
+    object-fit: cover;
+  }
+  
+  button {
+    padding: 8px 16px;
+    margin-right: 10px;
+    margin-top: 10px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: background-color 0.2s;
+  }
+  
+  button:first-of-type {
+    background-color: #4CAF50;
+    color: white;
+  }
+  
+  button:first-of-type:hover {
+    background-color: #45a049;
+  }
+  
+  button:last-of-type {
+    background-color: #f44336;
+    color: white;
+  }
+  
+  button:last-of-type:hover {
+    background-color: #d32f2f;
+  }
+  
+</style>
+<div class="header">
+  <h2>Requests</h2>
+</div>
+<div id="loader" style="display: flex;"><div class="loader"></div></div>
+<div id="requests"></div>
+<script>
+  const scriptURL = 'https://script.google.com/macros/s/AKfycby-RxqT4yj8OgvZ3ZDb23gPDgu3BY2xlfdEcCHlGsUeI9pY4jG1HcRuk4Tk-GfQK_i6Gg/exec';
+
+  fetch(`${scriptURL}?action=requests`)
+    .then(res => res.json())
+    .then(data => {
+      document.getElementById('loader').style.display = 'none';
+      const container = document.getElementById('requests');
+      data.forEach((item, index) => {
+        const card = document.createElement('div');
+        card.innerHTML = `
+          <p><b>Email:</b> ${item.email}</p>
+          <p><b>Key:</b> ${item.key}</p>
+          <img src="${item.image}" width="100">
+          <button onclick="accept(${index})">Accept</button>
+          <button onclick="reject(${index})">Reject</button>
+        `;
+        container.appendChild(card);
+      });
+    });
+
+  function accept(index) {
+    document.getElementById('loader').style.display = 'flex';
+    fetch(scriptURL, {
+      method: 'POST',
+      body: JSON.stringify({ action: 'accept', index: index })
+    }).then(() => location.reload());
+  }
+
+  function reject(index) {
+    document.getElementById('loader').style.display = 'flex';
+    fetch(scriptURL, {
+      method: 'POST',
+      body: JSON.stringify({ action: 'reject', index: index })
+    }).then(() => location.reload());
+  }
+</script>

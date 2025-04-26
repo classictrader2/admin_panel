@@ -1,0 +1,116 @@
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="loader.css">
+<div class="header">
+  <h2>Courses</h2>
+</div>
+<div class="form">
+<input type="file" id="imageInput" accept="image/*">
+<img id="preview" width="100">
+<input type="text" id="title" placeholder="Title" class="int">
+<input type="number" id="price" placeholder="Price" class="int">
+<textarea id="about" placeholder="About" class="txtar"></textarea>
+<textarea id="description" placeholder="Description" class="txtar"></textarea>
+<input type="file" id="addImage" accept="image/*"><button onclick="addAdditionalImage()" class="btn">Add</button>
+<div id="addedImages"></div>
+<button onclick="submitData()" class="btn">Submit</button>
+</div>
+<div id="loader"><div class="loader"></div></div>
+<table border="1" id="infoTable"><thead><tr><th>Image</th><th>Title</th><th>Action</th></tr></thead><tbody></tbody></table>
+
+<script>
+const scriptURL = 'https://script.google.com/macros/s/AKfycbwHxJPxNJJyQcDjmYzYas6UqhAvJO9efEQf-sRydzBoB_p4hhOcCt6GBktq9Y271T6wdQ/exec';
+const imgbbAPI = '31ad30f7d6b409876720b01d93d826f8';
+document.getElementById('loader').style.display = 'none';
+
+let additionalImages = [];
+
+document.getElementById('imageInput').addEventListener('change', function () {
+  const file = this.files[0];
+  const reader = new FileReader();
+  reader.onload = function () {
+    document.getElementById('preview').src = reader.result;
+  };
+  reader.readAsDataURL(file);
+});
+
+function addAdditionalImage() {
+  const file = document.getElementById('addImage').files[0];
+  if (!file) return alert("Select an image");
+
+  const formData = new FormData();
+  formData.append("image", file);
+  fetch(`https://api.imgbb.com/1/upload?key=${imgbbAPI}`, {
+    method: "POST",
+    body: formData
+  })
+    .then(res => res.json())
+    .then(data => {
+      additionalImages.push(data.data.url);
+      document.getElementById('addedImages').innerHTML += `<img src="${data.data.url}" width="50"> `;
+    });
+}
+
+function submitData() {
+  const file = document.getElementById('imageInput').files[0];
+  const title = document.getElementById('title').value;
+  const price = document.getElementById('price').value;
+  const about = document.getElementById('about').value;
+  const description = document.getElementById('description').value;
+  if (!file || !title || !price || !about || !description) return alert("All fields required");
+
+  document.getElementById('loader').style.display = 'block';
+  const formData = new FormData();
+  formData.append("image", file);
+  fetch(`https://api.imgbb.com/1/upload?key=${imgbbAPI}`, {
+    method: "POST",
+    body: formData
+  })
+    .then(res => res.json())
+    .then(data => {
+      const imageUrl = data.data.url;
+      fetch(scriptURL, {
+        method: 'POST',
+        body: JSON.stringify({ 
+          action: 'add_course_info',
+          title, 
+          price, 
+          image: imageUrl, 
+          about, 
+          description, 
+          additional: additionalImages.join(",") 
+        })
+      }).then(() => location.reload());
+    });
+}
+
+function loadTable() {
+  fetch(`${scriptURL}?action=load_info`)
+    .then(res => res.json())
+    .then(data => {
+      const tbody = document.querySelector('#infoTable tbody');
+      data.forEach((item, index) => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td><img src="${item.image}" width="50"></td>
+          <td>${item.title}</td>
+          <td><button onclick="confirmDelete('${item.key}')">Delete</button></td>
+        `;
+        tbody.appendChild(row);
+      });
+    });
+}
+
+function confirmDelete(key) {
+  if (confirm("Are You Want To Delete")) {
+    document.getElementById('loader').style.display = 'block';
+    fetch(scriptURL, {
+      method: 'POST',
+      body: JSON.stringify({ action: 'delete_both', key })
+    }).then(() => location.reload());
+  }
+}
+
+loadTable();
+</script>

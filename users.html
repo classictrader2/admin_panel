@@ -1,0 +1,40 @@
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="loader.css">
+<div class="header">
+  <h2>Users</h2>
+</div>
+<div class="table">
+<table border="1" id="usersTable">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Email</th>
+        <th>Mobile</th>
+        <th>Password</th>
+        <th>Courses</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+</div>
+  <script>
+  const scriptURL = 'https://script.google.com/macros/s/AKfycbz5-wk6uPXbO3qVA2x57tSELoF_axrpFLyuOo3_rbX0ND93Bvt7hJ3-v4ZWSV1smcXo9A/exec';
+  
+  function loadUsers() {
+    fetch(`${scriptURL}?action=get_users`)
+      .then(res => res.json())
+      .then(data => {
+        const tbody = document.querySelector("#usersTable tbody");
+        data.forEach(row => {
+          const tr = document.createElement("tr");
+          tr.innerHTML = `<td>${row[0]}</td><td>${row[1]}</td><td>${row[2]}</td><td>${row[3]}</td><td>${row[4]}</td>`;
+          tbody.appendChild(tr);
+        });
+      });
+  }
+  
+  loadUsers();
+  </script>
+  
